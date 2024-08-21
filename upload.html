@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Files</title>
+    <link rel="stylesheet" href="upload.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #1e1e1e;
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+}
+
+.upload-container {
+    width: 80%;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #2c2c2c;
+    border-radius: 10px;
+}
+
+h1 {
+    text-align: center;
+    color: #f5f5f5;
+}
+
+.upload-section {
+    margin-bottom: 20px;
+}
+
+.upload-section h2 {
+    color: #f5f5f5;
+}
+
+.file-input {
+    display: block;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.file-name {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
+.upload-btn {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+.upload-btn:hover {
+    background-color: #45a049;
+}
+.progress-bar {
+    background-color: #444;
+    border-radius: 5px;
+    height: 20px;
+    position: relative;
+    margin-bottom: 10px;
+}
+
+.progress {
+    background-color: #4caf50;
+    height: 100%;
+    width: 0;
+    border-radius: 5px;
+    text-align: center;
+    color: #fff;
+    line-height: 20px; /* Center text vertically */
+    transition: width 0.3s ease;
+}
+
+.message {
+    color: #ff5722;
+    font-size: 14px;
+}
+
+</style>
+</head>
+<body>
+    <div class="upload-container">
+        <h1>Upload Files</h1>
+
+        <div class="upload-section">
+            <h2>Upload File</h2>
+            <input type="file" id="fileInput" class="file-input" />
+            <input type="text" id="fileNameInput" class="file-name" placeholder="Enter file name" />
+            <button onclick="uploadFile('file')" class="upload-btn">Upload File</button>
+            <div class="progress-bar">
+                <div id="fileProgress" class="progress"></div>
+            </div>
+            <span id="fileMessage" class="message"></span>
+        </div>
+
+        <div class="upload-section">
+            <h2>Upload Image</h2>
+            <input type="file" id="imageInput" class="file-input" />
+            <input type="text" id="imageNameInput" class="file-name" placeholder="Enter image name" />
+            <button onclick="uploadFile('image')" class="upload-btn">Upload Image</button>
+            <div class="progress-bar">
+                <div id="imageProgress" class="progress"></div>
+            </div>
+            <span id="imageMessage" class="message"></span>
+        </div>
+
+        <div class="upload-section">
+            <h2>Upload Text</h2>
+            <textarea id="textInput" class="file-input" placeholder="Enter text"></textarea>
+            <input type="text" id="textNameInput" class="file-name" placeholder="Enter text name" />
+            <button onclick="uploadText()" class="upload-btn">Upload Text</button>
+            <div class="progress-bar">
+                <div id="textProgress" class="progress"></div>
+            </div>
+            <span id="textMessage" class="message"></span>
+        </div>
+
+        <div class="upload-section">
+            <h2>Upload YouTube Link</h2>
+            <input type="text" id="youtubeInput" class="file-input" placeholder="Enter YouTube URL" />
+            <input type="text" id="youtubeNameInput" class="file-name" placeholder="Enter video name" />
+            <button onclick="uploadYouTube()" class="upload-btn">Upload YouTube Link</button>
+            <div class="progress-bar">
+                <div id="youtubeProgress" class="progress"></div>
+            </div>
+            <span id="youtubeMessage" class="message"></span>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCIsuaOPUEWCf1IyM5Uh88TCRlIoj3nSC4",
+            authDomain: "uploadyoio.firebaseapp.com",
+            databaseURL: "https://uploadyoio-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "uploadyoio",
+            storageBucket: "uploadyoio.appspot.com",
+            messagingSenderId: "476111061097",
+            appId: "1:476111061097:web:0ce058a0b5780d5304a2f8",
+            measurementId: "G-JK4RZYGVV9"
+        };
+
+        const app = firebase.initializeApp(firebaseConfig);
+        const storage = firebase.storage();
+        const database = firebase.database();
+
+        function uploadFile(type) {
+            const fileInput = document.getElementById(type + 'Input');
+            const fileNameInput = document.getElementById(type + 'NameInput');
+            const progressBar = document.getElementById(type + 'Progress');
+            const message = document.getElementById(type + 'Message');
+
+            const file = fileInput.files[0];
+            const fileName = fileNameInput.value || file.name;
+
+            if (!file) {
+                message.textContent = 'Please select a file';
+                return;
+            }
+
+            const storageRef = storage.ref().child(type + '/' + fileName);
+            const uploadTask = storageRef.put(file);
+
+            uploadTask.on('state_changed',
+                (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    progressBar.style.width = progress + '%';
+                    progressBar.textContent = Math.round(progress) + '%';
+                },
+                (error) => {
+                    message.textContent = 'Upload failed: ' + error.message;
+                },
+                () => {
+                    uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+                        database.ref('files').push({
+                            name: fileName,
+                            type: type,
+                            url: downloadURL,
+                            size: file.size,
+                            date: new Date().toISOString()
+                        }).then(() => {
+                            message.textContent = 'Upload successful';
+                            progressBar.style.width = '0%';
+                            progressBar.textContent = '0%';
+                            fileInput.value = '';
+                            fileNameInput.value = '';
+                        });
+                    });
+                }
+            );
+        }
+
+        function uploadText() {
+            const textInput = document.getElementById('textInput');
+            const textNameInput = document.getElementById('textNameInput');
+            const progressBar = document.getElementById('textProgress');
+            const message = document.getElementById('textMessage');
+
+            const text = textInput.value;
+            const textName = textNameInput.value || 'text-' + new Date().getTime();
+
+            if (!text) {
+                message.textContent = 'Please enter some text';
+                return;
+            }
+
+            const newFileRef = database.ref('files').push({
+                name: textName,
+                type: 'text',
+                text: text,
+                size: text.length,
+                date: new Date().toISOString()
+            });
+
+            newFileRef.then(() => {
+                message.textContent = 'Upload successful';
+                progressBar.style.width = '0%';
+                progressBar.textContent = '0%';
+                textInput.value = '';
+                textNameInput.value = '';
+            }).catch((error) => {
+                message.textContent = 'Upload failed: ' + error.message;
+            });
+        }
+
+        function uploadYouTube() {
+            const youtubeInput = document.getElementById('youtubeInput');
+            const youtubeNameInput = document.getElementById('youtubeNameInput');
+            const progressBar = document.getElementById('youtubeProgress');
+            const message = document.getElementById('youtubeMessage');
+
+            const youtubeURL = youtubeInput.value;
+            const videoName = youtubeNameInput.value || 'video-' + new Date().getTime();
+
+            if (!youtubeURL) {
+                message.textContent = 'Please enter a YouTube URL';
+                return;
+            }
+
+            database.ref('files').push({
+                name: videoName,
+                type: 'youtube',
+                url: youtubeURL,
+                size: 0,
+                date: new Date().toISOString()
+            }).then(() => {
+                message.textContent = 'Upload successful';
+                progressBar.style.width = '0%';
+                progressBar.textContent = '0%';
+                youtubeInput.value = '';
+                youtubeNameInput.value = '';
+            }).catch((error) => {
+                message.textContent = 'Upload failed: ' + error.message;
+            });
+        }
+    </script>
+</body>
+              </html>
