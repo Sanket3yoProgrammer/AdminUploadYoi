@@ -333,32 +333,6 @@ h1 {
         });
     }
 
-    function displayUploadedFiles() {
-        const fileList = document.getElementById('fileList');
-        fileList.innerHTML = '';
-
-        database.ref().once('value').then((snapshot) => {
-            snapshot.forEach((childSnapshot) => {
-                const fileData = childSnapshot.val();
-                const fileItem = document.createElement('div');
-                fileItem.className = 'file-item';
-
-                fileItem.innerHTML = `
-                    <strong>Name:</strong> ${fileData.name}<br/>
-                    <strong>Type:</strong> ${fileData.type}<br/>
-                    <strong>Extension:</strong> ${fileData.extension || 'N/A'}<br/>
-                    <strong>Size:</strong> ${fileData.size || 'N/A'}<br/>
-                    <strong>Date:</strong> ${fileData.date}<br/>
-                    ${fileData.type === 'youtube' ? `<a href="${fileData.url}" target="_blank">Watch Video</a>` : `<a href="${fileData.url}" target="_blank">View File</a>`}
-                `;
-                fileList.appendChild(fileItem);
-            });
-        }).catch((error) => {
-            alert('Failed to load files: ' + error.message);
-        });
-    }
-
-    document.addEventListener('DOMContentLoaded', displayUploadedFiles);
 </script>
 </body>
 </html>
