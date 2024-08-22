@@ -92,6 +92,16 @@ h1 {
     font-size: 14px;
 }
 
+.file-list {
+    margin-top: 20px;
+}
+
+.file-item {
+    background: #333;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
 </style>
 </head>
 <body>
@@ -111,9 +121,9 @@ h1 {
 
         <div class="upload-section">
             <h2>Upload Image</h2>
-                  <button id="openImagePicker">Select Image</button>
-    <input type="file" id="imageInput" class="file-input" accept="image/*" style="display: none;" />
-   <input type="text" id="imageNameInput" class="file-name" placeholder="Enter image name" />
+            <button id="openImagePicker">Select Image</button>
+            <input type="file" id="imageInput" class="file-input" accept="image/*" style="display: none;" />
+            <input type="text" id="imageNameInput" class="file-name" placeholder="Enter image name" />
             <button onclick="uploadFile('image')" class="upload-btn">Upload Image</button>
             <div class="progress-bar">
                 <div id="imageProgress" class="progress"></div>
@@ -142,145 +152,213 @@ h1 {
             </div>
             <span id="youtubeMessage" class="message"></span>
         </div>
-    </div>
+
+          </div>
+
 <script>
     document.getElementById('openImagePicker').addEventListener('click', function() {
-            document.getElementById('imageInput').click();
-        });
+        document.getElementById('imageInput').click();
+    });
 
-        document.getElementById('imageInput').addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            if (file) {
-                console.log('Selected file:', file);
-                // You can handle the selected file here
+    document.getElementById('imageInput').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            console.log('Selected file:', file);
+            // You can handle the selected file here
+        }
+    });
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCIsuaOPUEWCf1IyM5Uh88TCRlIoj3nSC4",
+        authDomain: "uploadyoio.firebaseapp.com",
+        databaseURL: "https://uploadyoio-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "uploadyoio",
+        storageBucket: "uploadyoio.appspot.com",
+        messagingSenderId: "476111061097",
+        appId: "1:476111061097:web:0ce058a0b5780d5304a2f8",
+        measurementId: "G-JK4RZYGVV9"
+    };
+
+    const app = firebase.initializeApp(firebaseConfig);
+    const storage = firebase.storage();
+    const database = firebase.database();
+
+    function getSizeInReadableFormat(sizeInBytes) {
+        if (sizeInBytes < 1024 * 1024) {
+            return (sizeInBytes / 1024).toFixed(0) + ' KB';
+        } else {
+            return (sizeInBytes / (1024 * 1024)).toFixed(2) + ' MB';
+        }
+    }
+
+    function getFileExtension(filename) {
+        return filename.split('.').pop().toLowerCase();
+    }
+
+    function showOverlay(message) {
+        document.body.insertAdjacentHTML('beforeend', `
+            <div id="overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; color:#fff;">
+                <div>${message}<br/><div class="loader"></div></div>
+            </div>
+        `);
+    }
+
+    function hideOverlay() {
+        const overlay = document.getElementById('overlay');
+        if (overlay) {
+            overlay.remove();
+        }
+    }
+
+    function uploadFile(type) {
+        const fileInput = document.getElementById(type + 'Input');
+        const fileNameInput = document.getElementById(type + 'NameInput');
+        const progressBar = document.getElementById(type + 'Progress');
+        const message = document.getElementById(type + 'Message');
+
+        const file = fileInput.files[0];
+        const fileName = fileNameInput.value || file.name;
+
+        if (!file) {
+            message.textContent = 'Please select a file';
+            return;
+        }
+
+        showOverlay('Uploading...');
+
+        const fileExtension = getFileExtension(file.name);
+        const storageRef = storage.ref().child(type + '/' + fileName);
+        const uploadTask = storageRef.put(file);
+
+        uploadTask.on('state_changed',
+            (snapshot) => {
+                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                progressBar.style.width = progress + '%';
+                progressBar.textContent = Math.round(progress) + '%';
+            },
+            (error) => {
+                hideOverlay();
+                message.textContent = 'Upload failed: ' + error.message;
+                alert('Upload failed: ' + error.message);
+            },
+            () => {
+                uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+                    const fileData = {
+                        name: fileName,
+                        type: type,
+                        extension: getFileExtension(file.name),
+                        size: getSizeInReadableFormat(file.size),
+                        url: downloadURL,
+                        date: new Date().toLocaleString() // Current date and time
+                    };
+
+                    database.ref(type).push(fileData).then(() => {
+                        hideOverlay();
+                        message.textContent = 'Upload successful!';
+                        alert('Upload successful!');
+                        displayUploadedFiles();
+                    });
+                });
             }
-        });
-</script>
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyCIsuaOPUEWCf1IyM5Uh88TCRlIoj3nSC4",
-            authDomain: "uploadyoio.firebaseapp.com",
-            databaseURL: "https://uploadyoio-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "uploadyoio",
-            storageBucket: "uploadyoio.appspot.com",
-            messagingSenderId: "476111061097",
-            appId: "1:476111061097:web:0ce058a0b5780d5304a2f8",
-            measurementId: "G-JK4RZYGVV9"
+        );
+    }
+
+    function uploadText() {
+        const textInput = document.getElementById('textInput');
+        const textNameInput = document.getElementById('textNameInput');
+        const progressBar = document.getElementById('textProgress');
+        const message = document.getElementById('textMessage');
+
+        const text = textInput.value;
+        const textName = textNameInput.value || 'Text';
+
+        if (!text) {
+            message.textContent = 'Please enter text';
+            return;
+        }
+
+        showOverlay('Uploading...');
+
+        const fileData = {
+            name: textName,
+            type: 'text',
+            content: text,
+            date: new Date().toLocaleString() // Current date and time
         };
 
-        const app = firebase.initializeApp(firebaseConfig);
-        const storage = firebase.storage();
-        const database = firebase.database();
+        database.ref('text').push(fileData).then(() => {
+            hideOverlay();
+            message.textContent = 'Upload successful!';
+            alert('Upload successful!');
+            displayUploadedFiles();
+        }).catch((error) => {
+            hideOverlay();
+            message.textContent = 'Failed to save data: ' + error.message;
+            alert('Failed to save data: ' + error.message);
+        });
+    }
 
-        function uploadFile(type) {
-            const fileInput = document.getElementById(type + 'Input');
-            const fileNameInput = document.getElementById(type + 'NameInput');
-            const progressBar = document.getElementById(type + 'Progress');
-            const message = document.getElementById(type + 'Message');
+    function uploadYouTube() {
+        const youtubeInput = document.getElementById('youtubeInput');
+        const youtubeNameInput = document.getElementById('youtubeNameInput');
+        const progressBar = document.getElementById('youtubeProgress');
+        const message = document.getElementById('youtubeMessage');
 
-            const file = fileInput.files[0];
-            const fileName = fileNameInput.value || file.name;
+        const youtubeUrl = youtubeInput.value;
+        const youtubeName = youtubeNameInput.value || 'YouTube Video';
 
-            if (!file) {
-                message.textContent = 'Please select a file';
-                return;
-            }
-
-            const storageRef = storage.ref().child(type + '/' + fileName);
-            const uploadTask = storageRef.put(file);
-
-            uploadTask.on('state_changed',
-                (snapshot) => {
-                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                    progressBar.style.width = progress + '%';
-                    progressBar.textContent = Math.round(progress) + '%';
-                },
-                (error) => {
-                    message.textContent = 'Upload failed: ' + error.message;
-                },
-                () => {
-                    uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
-                        database.ref('files').push({
-                            name: fileName,
-                            type: type,
-                            url: downloadURL,
-                            size: file.size,
-                            date: new Date().toISOString()
-                        }).then(() => {
-                            message.textContent = 'Upload successful';
-                            progressBar.style.width = '0%';
-                            progressBar.textContent = '0%';
-                            fileInput.value = '';
-                            fileNameInput.value = '';
-                        });
-                    });
-                }
-            );
+        if (!youtubeUrl) {
+            message.textContent = 'Please enter a YouTube URL';
+            return;
         }
 
-        function uploadText() {
-            const textInput = document.getElementById('textInput');
-            const textNameInput = document.getElementById('textNameInput');
-            const progressBar = document.getElementById('textProgress');
-            const message = document.getElementById('textMessage');
+        showOverlay('Uploading...');
 
-            const text = textInput.value;
-            const textName = textNameInput.value || 'text-' + new Date().getTime();
+        const fileData = {
+            name: youtubeName,
+            type: 'youtube',
+            url: youtubeUrl,
+            date: new Date().toLocaleString() // Current date and time
+        };
 
-            if (!text) {
-                message.textContent = 'Please enter some text';
-                return;
-            }
+        database.ref('youtube').push(fileData).then(() => {
+            hideOverlay();
+            message.textContent = 'Upload successful!';
+            alert('Upload successful!');
+            displayUploadedFiles();
+        }).catch((error) => {
+            hideOverlay();
+            message.textContent = 'Failed to save data: ' + error.message;
+            alert('Failed to save data: ' + error.message);
+        });
+    }
 
-            const newFileRef = database.ref('files').push({
-                name: textName,
-                type: 'text',
-                text: text,
-                size: text.length,
-                date: new Date().toISOString()
+    function displayUploadedFiles() {
+        const fileList = document.getElementById('fileList');
+        fileList.innerHTML = '';
+
+        database.ref().once('value').then((snapshot) => {
+            snapshot.forEach((childSnapshot) => {
+                const fileData = childSnapshot.val();
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+
+                fileItem.innerHTML = `
+                    <strong>Name:</strong> ${fileData.name}<br/>
+                    <strong>Type:</strong> ${fileData.type}<br/>
+                    <strong>Extension:</strong> ${fileData.extension || 'N/A'}<br/>
+                    <strong>Size:</strong> ${fileData.size || 'N/A'}<br/>
+                    <strong>Date:</strong> ${fileData.date}<br/>
+                    ${fileData.type === 'youtube' ? `<a href="${fileData.url}" target="_blank">Watch Video</a>` : `<a href="${fileData.url}" target="_blank">View File</a>`}
+                `;
+                fileList.appendChild(fileItem);
             });
+        }).catch((error) => {
+            alert('Failed to load files: ' + error.message);
+        });
+    }
 
-            newFileRef.then(() => {
-                message.textContent = 'Upload successful';
-                progressBar.style.width = '0%';
-                progressBar.textContent = '0%';
-                textInput.value = '';
-                textNameInput.value = '';
-            }).catch((error) => {
-                message.textContent = 'Upload failed: ' + error.message;
-            });
-        }
-
-        function uploadYouTube() {
-            const youtubeInput = document.getElementById('youtubeInput');
-            const youtubeNameInput = document.getElementById('youtubeNameInput');
-            const progressBar = document.getElementById('youtubeProgress');
-            const message = document.getElementById('youtubeMessage');
-
-            const youtubeURL = youtubeInput.value;
-            const videoName = youtubeNameInput.value || 'video-' + new Date().getTime();
-
-            if (!youtubeURL) {
-                message.textContent = 'Please enter a YouTube URL';
-                return;
-            }
-
-            database.ref('files').push({
-                name: videoName,
-                type: 'youtube',
-                url: youtubeURL,
-                size: 0,
-                date: new Date().toISOString()
-            }).then(() => {
-                message.textContent = 'Upload successful';
-                progressBar.style.width = '0%';
-                progressBar.textContent = '0%';
-                youtubeInput.value = '';
-                youtubeNameInput.value = '';
-            }).catch((error) => {
-                message.textContent = 'Upload failed: ' + error.message;
-            });
-        }
-    </script>
+    document.addEventListener('DOMContentLoaded', displayUploadedFiles);
+</script>
 </body>
-              </html>
+</html>
