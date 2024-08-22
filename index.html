@@ -256,7 +256,7 @@ h1 {
                         hideOverlay();
                         message.textContent = 'Upload successful!';
                         alert('Upload successful!');
-                        displayUploadedFiles();
+                        
                     });
                 });
             }
@@ -290,7 +290,6 @@ h1 {
             hideOverlay();
             message.textContent = 'Upload successful!';
             alert('Upload successful!');
-            displayUploadedFiles();
         }).catch((error) => {
             hideOverlay();
             message.textContent = 'Failed to save data: ' + error.message;
@@ -325,7 +324,6 @@ h1 {
             hideOverlay();
             message.textContent = 'Upload successful!';
             alert('Upload successful!');
-            displayUploadedFiles();
         }).catch((error) => {
             hideOverlay();
             message.textContent = 'Failed to save data: ' + error.message;
