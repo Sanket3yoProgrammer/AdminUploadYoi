@@ -257,6 +257,8 @@ h1 {
                         message.textContent = 'Upload successful!';
                         alert('Upload successful!');
                         
+                        fileInput.value = '';  // Clear file input
+fileNameInput.value = '';  // Clear file name input
                     });
                 });
             }
@@ -290,6 +292,8 @@ h1 {
             hideOverlay();
             message.textContent = 'Upload successful!';
             alert('Upload successful!');
+            textInput.value = '';  // Clear text input
+textNameInput.value = '';  // Clear text name input
         }).catch((error) => {
             hideOverlay();
             message.textContent = 'Failed to save data: ' + error.message;
@@ -324,6 +328,8 @@ h1 {
             hideOverlay();
             message.textContent = 'Upload successful!';
             alert('Upload successful!');
+            youtubeInput.value = '';  // Clear YouTube URL input
+youtubeNameInput.value = '';  // Clear YouTube name Input
         }).catch((error) => {
             hideOverlay();
             message.textContent = 'Failed to save data: ' + error.message;
