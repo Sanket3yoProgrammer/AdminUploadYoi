@@ -7,114 +7,510 @@
     <link rel="shortcut icon" href="https://i.postimg.cc/nL6LVhhP/Picsart-24-08-30-07-06-25-055.jpg" type="image/x-icon">
     <meta name="description" content="UploadYoi - Effortlessly upload and manage files online with a sleek, dark-themed interface and real-time Firebase integration.">
     <title>Upload Files</title>
-    <link rel="stylesheet" href="upload.css">
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    background-color: #1e1e1e;
-    color: #ffffff;
-    margin: 0;
-    padding: 0;
-}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary: #53d4ad;
+            --secondary: #3dffc5;
+            --background: #1a1a1a;
+            --surface: #2c2c2c;
+            --text: #ffffff;
+            --error: #ff5757;
+            --success: #4caf50;
+        }
 
-.upload-container {
-    width: 80%;
-    margin: 20px auto;
-    padding: 20px;
-    background-color: #2c2c2c;
-    border-radius: 10px;
-}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
 
-h1 {
-    text-align: center;
-    color: #f5f5f5;
-}
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+        }
 
-.upload-section {
-    margin-bottom: 20px;
-}
+        .upload-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: var(--surface);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
 
-.upload-section h2 {
-    color: #f5f5f5;
-}
+        .upload-container:hover {
+            transform: translateY(-5px);
+        }
 
-.file-input {
-    display: block;
-    width: 100%;
-    margin-bottom: 10px;
-}
+        .upload-section {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            transition: all 0.3s ease;
+        }
 
-.file-name {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 5px;
-    border: 1px solid #ddd;
-}
+        .upload-section:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
 
-.upload-btn {
-    display: block;
-    width: 100%;
-    padding: 10px;
-    background-color: #4caf50;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-bottom: 10px;
-}
+        .file-input, .file-name, textarea {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            margin: 0.5rem 0;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(83, 212, 173, 0.1);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(8px);
+        }
 
-.upload-btn:hover {
-    background-color: #45a049;
-}
-.progress-bar {
-    background-color: #444;
-    border-radius: 5px;
-    height: 20px;
-    position: relative;
-    margin-bottom: 10px;
-}
+        .file-input:focus, .file-name:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(83, 212, 173, 0.2);
+            transform: translateY(-2px);
+        }
 
-.progress {
-    background-color: #4caf50;
-    height: 100%;
-    width: 0;
-    border-radius: 5px;
-    text-align: center;
-    color: #fff;
-    line-height: 20px; /* Center text vertically */
-    transition: width 0.3s ease;
-}
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
 
-.message {
-    color: #ff5722;
-    font-size: 14px;
-}
+        .upload-btn, #openImagePicker {
+            position: relative;
+            padding: 0.8rem 1.8rem;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 12px;
+            color: var(--text);
+            font-weight: 600;
+            cursor: pointer;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            z-index: 1;
+            margin: 1rem 0;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
 
-.file-list {
-    margin-top: 20px;
-}
+        .upload-btn:before, #openImagePicker:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+            z-index: -1;
+        }
 
-.file-item {
-    background: #333;
-    padding: 10px;
-    border-radius: 5px;
-    margin-bottom: 10px;
-}
-</style>
+        .upload-btn:hover:before, #openImagePicker:hover:before {
+            left: 100%;
+        }
+
+        .upload-btn:hover, #openImagePicker:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(83, 212, 173, 0.3);
+        }
+
+        .upload-btn:active, #openImagePicker:active {
+            transform: translateY(0);
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            width: 100%;
+            height: 120px;
+            border: 2px dashed var(--primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 1rem 0;
+            transition: all 0.3s ease;
+            background: rgba(83, 212, 173, 0.05);
+        }
+
+        .file-input-wrapper:hover {
+            background: rgba(83, 212, 173, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-input-wrapper .upload-icon {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .file-input-wrapper .upload-text {
+            text-align: center;
+            color: var(--text);
+        }
+
+        .input-group {
+            position: relative;
+            margin: 1rem 0;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary);
+        }
+
+        .input-group input {
+            padding-left: 3rem;
+        }
+
+        .upload-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: 20px;
+            z-index: 1000;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .progress-circle {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto;
+        }
+
+        .progress-circle svg {
+            transform: rotate(-90deg);
+        }
+
+        .progress-circle circle {
+            fill: none;
+            stroke-width: 8;
+            stroke-linecap: round;
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .toast {
+            padding: 1rem 1.5rem;
+            margin-bottom: 0.5rem;
+            border-radius: 10px;
+            background: var(--surface);
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            animation: slideIn 0.3s ease forwards;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .notification-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 10px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .upload-notification {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 15px;
+            width: 300px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            border-left: 4px solid var(--primary);
+        }
+
+        .notification-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .notification-header i {
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+
+        .filename {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text);
+            opacity: 0.5;
+            cursor: pointer;
+            padding: 4px;
+            transition: opacity 0.3s;
+        }
+
+        .close-btn:hover {
+            opacity: 1;
+        }
+
+        .progress-wrapper {
+            margin: 10px 0;
+        }
+
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            height: 6px;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+        .progress {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            height: 100%;
+            width: 0;
+            border-radius: 10px;
+        }
+
+        .progress-text {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        .status {
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status i {
+            font-size: 1rem;
+        }
+
+        .cool-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(26, 26, 26, 0.95);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: overlayFadeIn 0.3s ease forwards;
+        }
+
+        .upload-content {
+            text-align: center;
+            transform: translateY(20px);
+            animation: contentSlideUp 0.5s ease forwards;
+        }
+
+        .upload-circle {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+        }
+
+        .circular-progress {
+            transform: rotate(-90deg);
+            width: 100%;
+            height: 100%;
+        }
+
+        .progress-background {
+            fill: none;
+            stroke: rgba(83, 212, 173, 0.1);
+            stroke-width: 8;
+        }
+
+        .progress-bar {
+            fill: none;
+            stroke: var(--primary);
+            stroke-width: 8;
+            stroke-linecap: round;
+            stroke-dasharray: 251.2;
+            transition: stroke-dashoffset 0.3s ease;
+        }
+
+        .upload-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2rem;
+            color: var(--primary);
+            animation: iconPulse 2s ease-in-out infinite;
+        }
+
+        .upload-text h3 {
+            color: var(--text);
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+        }
+
+        .upload-status {
+            color: var(--primary);
+            opacity: 0.8;
+            font-size: 1rem;
+        }
+
+        @keyframes overlayFadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes contentSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes progressAnimation {
+            0% {
+                stroke-dashoffset: 251.2;
+            }
+            50% {
+                stroke-dashoffset: 125.6;
+            }
+            100% {
+                stroke-dashoffset: 251.2;
+            }
+        }
+
+        @keyframes iconPulse {
+            0%, 100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.1);
+                opacity: 0.8;
+            }
+        }
+
+        .upload-section h2 {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: var(--primary);
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            margin-bottom: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-section h2::before {
+            content: '';
+            position: absolute;
+            left: -100%;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .upload-section h2:hover::before {
+            left: 100%;
+        }
+
+        .upload-section h2 i {
+            margin-right: 0.5rem;
+            font-size: 1.5rem;
+            color: var(--primary);
+            text-shadow: none;
+            -webkit-background-clip: unset;
+            -webkit-text-fill-color: var(--primary);
+            animation: iconBounce 1s infinite alternate;
+        }
+
+        @keyframes iconBounce {
+            from {
+                transform: translateY(0);
+            }
+            to {
+                transform: translateY(-5px);
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="upload-container">
-        <h1 style="color: #53d4ad;">Upload Files</h1>
-    <p style="text-align: center;"> "Only administrators with exclusive access to this website's links can upload items to the Upload-Yoi gallery."</p>
+        <h1 style="color: #53d4ad; display: flex; justify-content: center;"><i class="fas fa-cloud-upload-alt icon"></i>  Upload Files</h1>
+        <p style="text-align: center;">"Only administrators with exclusive access to this website's links can upload items to the Upload-Yoi gallery."</p>
         <div class="upload-section">
-            <h2>Upload File</h2>
-            <input type="file" id="fileInput" class="file-input" />
+            <h2><i class="fas fa-file-upload icon"></i>Upload File</h2>
+            <div class="file-input-wrapper">
+                <input type="file" id="fileInput" class="file-input" />
+                <div class="upload-icon"><i class="fas fa-upload"></i></div>
+                <div class="upload-text">Drag & Drop or Click to Upload</div>
+            </div>
             <input type="text" id="fileNameInput" class="file-name" placeholder="Enter file name" />
-            <button onclick="uploadFile('file')" class="upload-btn">Upload File</button>
+            <button onclick="uploadFile('file')" class="upload-btn"><i class="fas fa-upload icon"></i>Upload File</button>
             <div class="progress-bar">
                 <div id="fileProgress" class="progress"></div>
             </div>
@@ -122,11 +518,11 @@ h1 {
         </div>
 
         <div class="upload-section">
-            <h2>Upload Image</h2>
-            <button id="openImagePicker">Select Image</button>
+            <h2><i class="fas fa-image icon"></i>Upload Image</h2>
+            <button id="openImagePicker" class="upload-btn"><i class="fas fa-folder-open icon"></i>Select Image</button>
             <input type="file" id="imageInput" class="file-input" accept="image/*" style="display: none;" />
             <input type="text" id="imageNameInput" class="file-name" placeholder="Enter image name" />
-            <button onclick="uploadFile('image')" class="upload-btn">Upload Image</button>
+            <button onclick="uploadFile('image')" class="upload-btn"><i class="fas fa-upload icon"></i>Upload Image</button>
             <div class="progress-bar">
                 <div id="imageProgress" class="progress"></div>
             </div>
@@ -134,10 +530,10 @@ h1 {
         </div>
 
         <div class="upload-section">
-            <h2>Upload Text</h2>
+            <h2><i class="fas fa-align-left icon"></i>Upload Text</h2>
             <textarea id="textInput" class="file-input" placeholder="Enter text"></textarea>
             <input type="text" id="textNameInput" class="file-name" placeholder="Enter text name" />
-            <button onclick="uploadText()" class="upload-btn">Upload Text</button>
+            <button onclick="uploadText()" class="upload-btn"><i class="fas fa-upload icon"></i>Upload Text</button>
             <div class="progress-bar">
                 <div id="textProgress" class="progress"></div>
             </div>
@@ -145,206 +541,251 @@ h1 {
         </div>
 
         <div class="upload-section">
-            <h2>Upload YouTube Link</h2>
+            <h2><i class="fab fa-youtube icon"></i>Upload YouTube Link</h2>
             <input type="text" id="youtubeInput" class="file-input" placeholder="Enter YouTube URL" />
             <input type="text" id="youtubeNameInput" class="file-name" placeholder="Enter video name" />
-            <button onclick="uploadYouTube()" class="upload-btn">Upload YouTube Link</button>
+            <button onclick="uploadYouTube()" class="upload-btn"><i class="fas fa-upload icon"></i>Upload YouTube Link</button>
             <div class="progress-bar">
                 <div id="youtubeProgress" class="progress"></div>
             </div>
             <span id="youtubeMessage" class="message"></span>
         </div>
 
-          </div>
-<footer>
+        <div class="upload-section">
+            <h2><i class="fas fa-link icon"></i>Upload Link</h2>
+            <input type="text" id="linkInput" class="file-input" placeholder="Enter URL" />
+            <input type="text" id="linkNameInput" class="file-name" placeholder="Enter link name" />
+            <button onclick="uploadLink()" class="upload-btn"><i class="fas fa-upload icon"></i>Upload Link</button>
+            <div class="progress-bar">
+                <div id="linkProgress" class="progress"></div>
+            </div>
+            <span id="linkMessage" class="message"></span>
+        </div>
+    </div>
+    <footer>
         <h5 style="display: flex; justify-content: center; font-weight: bold;">
             Made with fun by- <a style="color: #3dffc5; font-weight: underline;" href="https://github.com/sanket3yoprogrammer">@Sanket3yoprogrammer</a>
         </h5>
 <svg id="wave" style="transform:rotate(0deg); transition: 0.3s" viewBox="0 0 1440 460" version="1.1" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="sw-gradient-0" x1="0" x2="0" y1="1" y2="0"><stop stop-color="rgba(5.755, 188.878, 0, 0.8)" offset="0%"></stop><stop stop-color="rgba(103.143, 255, 184.261, 0.53)" offset="100%"></stop></linearGradient></defs><path style="transform:translate(0, 0px); opacity:1" fill="url(#sw-gradient-0)" d="M0,230L34.3,199.3C68.6,169,137,107,206,69C274.3,31,343,15,411,69C480,123,549,245,617,268.3C685.7,291,754,215,823,222.3C891.4,230,960,322,1029,345C1097.1,368,1166,322,1234,299C1302.9,276,1371,276,1440,260.7C1508.6,245,1577,215,1646,176.3C1714.3,138,1783,92,1851,76.7C1920,61,1989,77,2057,115C2125.7,153,2194,215,2263,222.3C2331.4,230,2400,184,2469,199.3C2537.1,215,2606,291,2674,291.3C2742.9,291,2811,215,2880,199.3C2948.6,184,3017,230,3086,222.3C3154.3,215,3223,153,3291,122.7C3360,92,3429,92,3497,130.3C3565.7,169,3634,245,3703,291.3C3771.4,337,3840,353,3909,322C3977.1,291,4046,215,4114,222.3C4182.9,230,4251,322,4320,345C4388.6,368,4457,322,4526,299C4594.3,276,4663,276,4731,299C4800,322,4869,368,4903,391L4937.1,414L4937.1,460L4902.9,460C4868.6,460,4800,460,4731,460C4662.9,460,4594,460,4526,460C4457.1,460,4389,460,4320,460C4251.4,460,4183,460,4114,460C4045.7,460,3977,460,3909,460C3840,460,3771,460,3703,460C3634.3,460,3566,460,3497,460C3428.6,460,3360,460,3291,460C3222.9,460,3154,460,3086,460C3017.1,460,2949,460,2880,460C2811.4,460,2743,460,2674,460C2605.7,460,2537,460,2469,460C2400,460,2331,460,2263,460C2194.3,460,2126,460,2057,460C1988.6,460,1920,460,1851,460C1782.9,460,1714,460,1646,460C1577.1,460,1509,460,1440,460C1371.4,460,1303,460,1234,460C1165.7,460,1097,460,1029,460C960,460,891,460,823,460C754.3,460,686,460,617,460C548.6,460,480,460,411,460C342.9,460,274,460,206,460C137.1,460,69,460,34,460L0,460Z"></path><defs><linearGradient id="sw-gradient-1" x1="0" x2="0" y1="1" y2="0"><stop stop-color="rgba(0, 168.61, 255, 1)" offset="0%"></stop><stop stop-color="rgba(0, 255, 174.369, 0.8)" offset="100%"></stop></linearGradient></defs><path style="transform:translate(0, 50px); opacity:0.9" fill="url(#sw-gradient-1)" d="M0,322L34.3,314.3C68.6,307,137,291,206,260.7C274.3,230,343,184,411,153.3C480,123,549,107,617,145.7C685.7,184,754,276,823,322C891.4,368,960,368,1029,375.7C1097.1,383,1166,399,1234,337.3C1302.9,276,1371,138,1440,84.3C1508.6,31,1577,61,1646,92C1714.3,123,1783,153,1851,138C1920,123,1989,61,2057,99.7C2125.7,138,2194,276,2263,283.7C2331.4,291,2400,169,2469,145.7C2537.1,123,2606,199,2674,245.3C2742.9,291,2811,307,2880,276C2948.6,245,3017,169,3086,138C3154.3,107,3223,123,3291,115C3360,107,3429,77,3497,107.3C3565.7,138,3634,230,3703,230C3771.4,230,3840,138,3909,130.3C3977.1,123,4046,199,4114,253C4182.9,307,4251,337,4320,360.3C4388.6,383,4457,399,4526,406.3C4594.3,414,4663,414,4731,368C4800,322,4869,230,4903,184L4937.1,138L4937.1,460L4902.9,460C4868.6,460,4800,460,4731,460C4662.9,460,4594,460,4526,460C4457.1,460,4389,460,4320,460C4251.4,460,4183,460,4114,460C4045.7,460,3977,460,3909,460C3840,460,3771,460,3703,460C3634.3,460,3566,460,3497,460C3428.6,460,3360,460,3291,460C3222.9,460,3154,460,3086,460C3017.1,460,2949,460,2880,460C2811.4,460,2743,460,2674,460C2605.7,460,2537,460,2469,460C2400,460,2331,460,2263,460C2194.3,460,2126,460,2057,460C1988.6,460,1920,460,1851,460C1782.9,460,1714,460,1646,460C1577.1,460,1509,460,1440,460C1371.4,460,1303,460,1234,460C1165.7,460,1097,460,1029,460C960,460,891,460,823,460C754.3,460,686,460,617,460C548.6,460,480,460,411,460C342.9,460,274,460,206,460C137.1,460,69,460,34,460L0,460Z"></path><defs><linearGradient id="sw-gradient-2" x1="0" x2="0" y1="1" y2="0"><stop stop-color="rgba(0, 134.054, 255, 1)" offset="0%"></stop><stop stop-color="rgba(0, 255, 180.129, 0.81)" offset="100%"></stop></linearGradient></defs><path style="transform:translate(0, 100px); opacity:0.8" fill="url(#sw-gradient-2)" d="M0,184L34.3,214.7C68.6,245,137,307,206,283.7C274.3,261,343,153,411,161C480,169,549,291,617,337.3C685.7,383,754,353,823,314.3C891.4,276,960,230,1029,237.7C1097.1,245,1166,307,1234,299C1302.9,291,1371,215,1440,176.3C1508.6,138,1577,138,1646,153.3C1714.3,169,1783,199,1851,176.3C1920,153,1989,77,2057,69C2125.7,61,2194,123,2263,138C2331.4,153,2400,123,2469,92C2537.1,61,2606,31,2674,84.3C2742.9,138,2811,276,2880,337.3C2948.6,399,3017,383,3086,383.3C3154.3,383,3223,399,3291,406.3C3360,414,3429,414,3497,360.3C3565.7,307,3634,199,3703,199.3C3771.4,199,3840,307,3909,329.7C3977.1,353,4046,291,4114,230C4182.9,169,4251,107,4320,76.7C4388.6,46,4457,46,4526,76.7C4594.3,107,4663,169,4731,199.3C4800,230,4869,230,4903,230L4937.1,230L4937.1,460L4902.9,460C4868.6,460,4800,460,4731,460C4662.9,460,4594,460,4526,460C4457.1,460,4389,460,4320,460C4251.4,460,4183,460,4114,460C4045.7,460,3977,460,3909,460C3840,460,3771,460,3703,460C3634.3,460,3566,460,3497,460C3428.6,460,3360,460,3291,460C3222.9,460,3154,460,3086,460C3017.1,460,2949,460,2880,460C2811.4,460,2743,460,2674,460C2605.7,460,2537,460,2469,460C2400,460,2331,460,2263,460C2194.3,460,2126,460,2057,460C1988.6,460,1920,460,1851,460C1782.9,460,1714,460,1646,460C1577.1,460,1509,460,1440,460C1371.4,460,1303,460,1234,460C1165.7,460,1097,460,1029,460C960,460,891,460,823,460C754.3,460,686,460,617,460C548.6,460,480,460,411,460C342.9,460,274,460,206,460C137.1,460,69,460,34,460L0,460Z"></path><defs><linearGradient id="sw-gradient-3" x1="0" x2="0" y1="1" y2="0"><stop stop-color="rgba(62.483, 0, 255, 1)" offset="0%"></stop><stop stop-color="rgba(0, 255, 28.227, 0.77)" offset="100%"></stop></linearGradient></defs><path style="transform:translate(0, 150px); opacity:0.7" fill="url(#sw-gradient-3)" d="M0,0L34.3,23C68.6,46,137,92,206,122.7C274.3,153,343,169,411,184C480,199,549,215,617,222.3C685.7,230,754,230,823,260.7C891.4,291,960,353,1029,360.3C1097.1,368,1166,322,1234,253C1302.9,184,1371,92,1440,115C1508.6,138,1577,276,1646,283.7C1714.3,291,1783,169,1851,145.7C1920,123,1989,199,2057,253C2125.7,307,2194,337,2263,291.3C2331.4,245,2400,123,2469,92C2537.1,61,2606,123,2674,153.3C2742.9,184,2811,184,2880,168.7C2948.6,153,3017,123,3086,138C3154.3,153,3223,215,3291,207C3360,199,3429,123,3497,92C3565.7,61,3634,77,3703,69C3771.4,61,3840,31,3909,69C3977.1,107,4046,215,4114,260.7C4182.9,307,4251,291,4320,253C4388.6,215,4457,153,4526,176.3C4594.3,199,4663,307,4731,360.3C4800,414,4869,414,4903,414L4937.1,414L4937.1,460L4902.9,460C4868.6,460,4800,460,4731,460C4662.9,460,4594,460,4526,460C4457.1,460,4389,460,4320,460C4251.4,460,4183,460,4114,460C4045.7,460,3977,460,3909,460C3840,460,3771,460,3703,460C3634.3,460,3566,460,3497,460C3428.6,460,3360,460,3291,460C3222.9,460,3154,460,3086,460C3017.1,460,2949,460,2880,460C2811.4,460,2743,460,2674,460C2605.7,460,2537,460,2469,460C2400,460,2331,460,2263,460C2194.3,460,2126,460,2057,460C1988.6,460,1920,460,1851,460C1782.9,460,1714,460,1646,460C1577.1,460,1509,460,1440,460C1371.4,460,1303,460,1234,460C1165.7,460,1097,460,1029,460C960,460,891,460,823,460C754.3,460,686,460,617,460C548.6,460,480,460,411,460C342.9,460,274,460,206,460C137.1,460,69,460,34,460L0,460Z"></path></svg>
     
     </footer>
-<script>
-    document.getElementById('openImagePicker').addEventListener('click', function() {
-        document.getElementById('imageInput').click();
-    });
+    <script>
+        document.getElementById('openImagePicker').addEventListener('click', function() {
+            document.getElementById('imageInput').click();
+        });
 
-    document.getElementById('imageInput').addEventListener('change', function(event) {
-        const file = event.target.files[0];
-        if (file) {
-            console.log('Selected file:', file);
-            // You can handle the selected file here
-        }
-    });
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyCIsuaOPUEWCf1IyM5Uh88TCRlIoj3nSC4",
-        authDomain: "uploadyoio.firebaseapp.com",
-        databaseURL: "https://uploadyoio-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "uploadyoio",
-        storageBucket: "uploadyoio.appspot.com",
-        messagingSenderId: "476111061097",
-        appId: "1:476111061097:web:0ce058a0b5780d5304a2f8",
-        measurementId: "G-JK4RZYGVV9"
-    };
-
-    const app = firebase.initializeApp(firebaseConfig);
-    const storage = firebase.storage();
-    const database = firebase.database();
-
-    function getSizeInReadableFormat(sizeInBytes) {
-        if (sizeInBytes < 1024 * 1024) {
-            return (sizeInBytes / 1024).toFixed(0) + ' KB';
-        } else {
-            return (sizeInBytes / (1024 * 1024)).toFixed(2) + ' MB';
-        }
-    }
-
-    function getFileExtension(filename) {
-        return filename.split('.').pop().toLowerCase();
-    }
-
-    function showOverlay(message) {
-        document.body.insertAdjacentHTML('beforeend', `
-            <div id="overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; color:#fff;">
-                <div>${message}<br/><div class="loader"></div></div>
-            </div>
-        `);
-    }
-
-    function hideOverlay() {
-        const overlay = document.getElementById('overlay');
-        if (overlay) {
-            overlay.remove();
-        }
-    }
-
-    function uploadFile(type) {
-        const fileInput = document.getElementById(type + 'Input');
-        const fileNameInput = document.getElementById(type + 'NameInput');
-        const progressBar = document.getElementById(type + 'Progress');
-        const message = document.getElementById(type + 'Message');
-
-        const file = fileInput.files[0];
-        const fileName = fileNameInput.value || file.name;
-
-        if (!file) {
-            message.textContent = 'Please select a file';
-            return;
-        }
-
-        showOverlay('Uploading...');
-
-        const fileExtension = getFileExtension(file.name);
-        const storageRef = storage.ref().child(type + '/' + fileName);
-        const uploadTask = storageRef.put(file);
-
-        uploadTask.on('state_changed',
-            (snapshot) => {
-                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                progressBar.style.width = progress + '%';
-                progressBar.textContent = Math.round(progress) + '%';
-            },
-            (error) => {
-                hideOverlay();
-                message.textContent = 'Upload failed: ' + error.message;
-                alert('Upload failed: ' + error.message);
-            },
-            () => {
-                uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
-                    const fileData = {
-                        name: fileName,
-                        type: type,
-                        extension: getFileExtension(file.name),
-                        size: getSizeInReadableFormat(file.size),
-                        url: downloadURL,
-                        date: new Date().toLocaleString() // Current date and time
-                    };
-
-                    database.ref(type).push(fileData).then(() => {
-                        hideOverlay();
-                        message.textContent = 'Upload successful!';
-                        alert('Upload successful!');
-                        
-                        fileInput.value = '';  // Clear file input
-fileNameInput.value = '';  // Clear file name input
-                    });
-                });
+        document.getElementById('imageInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                console.log('Selected file:', file);
+                // You can handle the selected file here
             }
-        );
-    }
+        });
 
-    function uploadText() {
-        const textInput = document.getElementById('textInput');
-        const textNameInput = document.getElementById('textNameInput');
-        const progressBar = document.getElementById('textProgress');
-        const message = document.getElementById('textMessage');
-
-        const text = textInput.value;
-        const textName = textNameInput.value || 'Text';
-
-        if (!text) {
-            message.textContent = 'Please enter text';
-            return;
-        }
-
-        showOverlay('Uploading...');
-
-        const fileData = {
-            name: textName,
-            type: 'text',
-            content: text,
-            date: new Date().toLocaleString() // Current date and time
+        const firebaseConfig = {
+            apiKey: "AIzaSyCIsuaOPUEWCf1IyM5Uh88TCRlIoj3nSC4",
+            authDomain: "uploadyoio.firebaseapp.com",
+            databaseURL: "https://uploadyoio-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "uploadyoio",
+            storageBucket: "uploadyoio.appspot.com",
+            messagingSenderId: "476111061097",
+            appId: "1:476111061097:web:0ce058a0b5780d5304a2f8",
+            measurementId: "G-JK4RZYGVV9"
         };
 
-        database.ref('text').push(fileData).then(() => {
-            hideOverlay();
-            message.textContent = 'Upload successful!';
-            alert('Upload successful!');
-            textInput.value = '';  // Clear text input
-textNameInput.value = '';  // Clear text name input
-        }).catch((error) => {
-            hideOverlay();
-            message.textContent = 'Failed to save data: ' + error.message;
-            alert('Failed to save data: ' + error.message);
-        });
-    }
+        const app = firebase.initializeApp(firebaseConfig);
+        const storage = firebase.storage();
+        const database = firebase.database();
 
-    function uploadYouTube() {
-        const youtubeInput = document.getElementById('youtubeInput');
-        const youtubeNameInput = document.getElementById('youtubeNameInput');
-        const progressBar = document.getElementById('youtubeProgress');
-        const message = document.getElementById('youtubeMessage');
-
-        const youtubeUrl = youtubeInput.value;
-        const youtubeName = youtubeNameInput.value || 'YouTube Video';
-
-        if (!youtubeUrl) {
-            message.textContent = 'Please enter a YouTube URL';
-            return;
+        function getSizeInReadableFormat(sizeInBytes) {
+            if (sizeInBytes < 1024 * 1024) {
+                return (sizeInBytes / 1024).toFixed(0) + ' KB';
+            } else {
+                return (sizeInBytes / (1024 * 1024)).toFixed(2) + ' MB';
+            }
         }
 
-        showOverlay('Uploading...');
+        function getFileExtension(filename) {
+            return filename.split('.').pop().toLowerCase();
+        }
 
-        const fileData = {
-            name: youtubeName,
-            type: 'youtube',
-            url: youtubeUrl,
-            date: new Date().toLocaleString() // Current date and time
-        };
+        function showOverlay(message) {
+            document.body.insertAdjacentHTML('beforeend', `
+                <div id="overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; color:#fff;">
+                    <div>${message}<br/><div class="loader"></div></div>
+                </div>
+            `);
+        }
 
-        database.ref('youtube').push(fileData).then(() => {
-            hideOverlay();
-            message.textContent = 'Upload successful!';
-            alert('Upload successful!');
-            youtubeInput.value = '';  // Clear YouTube URL input
-youtubeNameInput.value = '';  // Clear YouTube name Input
-        }).catch((error) => {
-            hideOverlay();
-            message.textContent = 'Failed to save data: ' + error.message;
-            alert('Failed to save data: ' + error.message);
-        });
-    }
+        function hideOverlay() {
+            const overlay = document.getElementById('overlay');
+            if (overlay) {
+                overlay.remove();
+            }
+        }
 
-</script>
+        function uploadFile(type) {
+            const fileInput = document.getElementById(type + 'Input');
+            const fileNameInput = document.getElementById(type + 'NameInput');
+            const progressBar = document.getElementById(type + 'Progress');
+            const message = document.getElementById(type + 'Message');
+
+            const file = fileInput.files[0];
+            const fileName = fileNameInput.value || file.name;
+
+            if (!file) {
+                message.textContent = 'Please select a file';
+                return;
+            }
+
+            showOverlay('Uploading...');
+
+            const fileExtension = getFileExtension(file.name);
+            const storageRef = storage.ref().child(type + '/' + fileName);
+            const uploadTask = storageRef.put(file);
+
+            uploadTask.on('state_changed',
+                (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    progressBar.style.width = progress + '%';
+                    progressBar.textContent = Math.round(progress) + '%';
+                },
+                (error) => {
+                    hideOverlay();
+                    message.textContent = 'Upload failed: ' + error.message;
+                    alert('Upload failed: ' + error.message);
+                },
+                () => {
+                    uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+                        const fileData = {
+                            name: fileName,
+                            type: type,
+                            extension: getFileExtension(file.name),
+                            size: getSizeInReadableFormat(file.size),
+                            url: downloadURL,
+                            date: new Date().toLocaleString() // Current date and time
+                        };
+
+                        database.ref(type).push(fileData).then(() => {
+                            hideOverlay();
+                            message.textContent = 'Upload successful!';
+                            alert('Upload successful!');
+                            
+                            fileInput.value = '';  // Clear file input
+                            fileNameInput.value = '';  // Clear file name input
+                        });
+                    });
+                }
+            );
+        }
+
+        function uploadText() {
+            const textInput = document.getElementById('textInput');
+            const textNameInput = document.getElementById('textNameInput');
+            const progressBar = document.getElementById('textProgress');
+            const message = document.getElementById('textMessage');
+
+            const text = textInput.value;
+            const textName = textNameInput.value || 'Text';
+
+            if (!text) {
+                message.textContent = 'Please enter text';
+                return;
+            }
+
+            showOverlay('Uploading...');
+
+            const fileData = {
+                name: textName,
+                type: 'text',
+                content: text,
+                date: new Date().toLocaleString() // Current date and time
+            };
+
+            database.ref('text').push(fileData).then(() => {
+                hideOverlay();
+                message.textContent = 'Upload successful!';
+                alert('Upload successful!');
+                textInput.value = '';  // Clear text input
+                textNameInput.value = '';  // Clear text name input
+            }).catch((error) => {
+                hideOverlay();
+                message.textContent = 'Failed to save data: ' + error.message;
+                alert('Failed to save data: ' + error.message);
+            });
+        }
+
+        function uploadYouTube() {
+            const youtubeInput = document.getElementById('youtubeInput');
+            const youtubeNameInput = document.getElementById('youtubeNameInput');
+            const progressBar = document.getElementById('youtubeProgress');
+            const message = document.getElementById('youtubeMessage');
+
+            const youtubeUrl = youtubeInput.value;
+            const youtubeName = youtubeNameInput.value || 'YouTube Video';
+
+            if (!youtubeUrl) {
+                message.textContent = 'Please enter a YouTube URL';
+                return;
+            }
+
+            showOverlay('Uploading...');
+
+            const fileData = {
+                name: youtubeName,
+                type: 'youtube',
+                url: youtubeUrl,
+                date: new Date().toLocaleString() // Current date and time
+            };
+
+            database.ref('youtube').push(fileData).then(() => {
+                hideOverlay();
+                message.textContent = 'Upload successful!';
+                alert('Upload successful!');
+                youtubeInput.value = '';  // Clear YouTube URL input
+                youtubeNameInput.value = '';  // Clear YouTube name Input
+            }).catch((error) => {
+                hideOverlay();
+                message.textContent = 'Failed to save data: ' + error.message;
+                alert('Failed to save data: ' + error.message);
+            });
+        }
+
+        function uploadLink() {
+            const linkInput = document.getElementById('linkInput');
+            const linkNameInput = document.getElementById('linkNameInput');
+            const progressBar = document.getElementById('linkProgress');
+            const message = document.getElementById('linkMessage');
+
+            const linkUrl = linkInput.value;
+            const linkName = linkNameInput.value || 'Link';
+
+            if (!linkUrl) {
+                message.textContent = 'Please enter a URL';
+                return;
+            }
+
+            showOverlay('Uploading...');
+
+            const fileData = {
+                name: linkName,
+                type: 'link',
+                url: linkUrl,
+                date: new Date().toLocaleString() // Current date and time
+            };
+
+            database.ref('link').push(fileData).then(() => {
+                hideOverlay();
+                message.textContent = 'Upload successful!';
+                alert('Upload successful!');
+                linkInput.value = '';  // Clear URL input
+                linkNameInput.value = '';  // Clear link name input
+            }).catch((error) => {
+                hideOverlay();
+                message.textContent = 'Failed to save data: ' + error.message;
+                alert('Failed to save data: ' + error.message);
+            });
+        }
+    </script>
 </body>
 </html>
