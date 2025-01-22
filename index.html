@@ -306,9 +306,10 @@
         .progress-bar {
             background: rgba(255, 255, 255, 0.1);
             border-radius: 10px;
-            height: 6px;
+            height: 10px;
             overflow: hidden;
             margin-bottom: 5px;
+            width: 100%;
         }
 
         .progress {
@@ -316,11 +317,16 @@
             height: 100%;
             width: 0;
             border-radius: 10px;
+            position: relative;
         }
 
         .progress-text {
-            font-size: 0.8rem;
-            opacity: 0.7;
+            font-size: 1rem;
+            color: #fff;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            top: -25%;
         }
 
         .status {
@@ -496,6 +502,78 @@
                 transform: translateY(-5px);
             }
         }
+
+        .file-selected {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--primary);
+            text-align: center;
+            transition: opacity 0.3s ease;
+            opacity: 0.8;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(26, 26, 26, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: overlayFadeIn 0.3s ease forwards;
+        }
+
+        .overlay-content {
+            text-align: center;
+            animation: contentSlideUp 0.5s ease forwards;
+        }
+
+        .loader {
+            font-size: 3rem;
+            color: var(--primary);
+            animation: float 6s linear infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0); }
+        }
+
+        .success-icon {
+            font-size: 5rem;
+            color: var(--success);
+            display: none;
+            animation: pop 0.5s ease forwards;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse-icon {
+            animation: pulse 3.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 <body>
@@ -508,7 +586,9 @@
                 <input type="file" id="fileInput" class="file-input" />
                 <div class="upload-icon"><i class="fas fa-upload"></i></div>
                 <div class="upload-text">Drag & Drop or Click to Upload</div>
+                
             </div>
+            <div id="fileSelected" class="file-selected"></div>
             <input type="text" id="fileNameInput" class="file-name" placeholder="Enter file name" />
             <button onclick="uploadFile('file')" class="upload-btn"><i class="fas fa-upload icon"></i>Upload File</button>
             <div class="progress-bar">
@@ -521,12 +601,14 @@
             <h2><i class="fas fa-image icon"></i>Upload Image</h2>
             <button id="openImagePicker" class="upload-btn"><i class="fas fa-folder-open icon"></i>Select Image</button>
             <input type="file" id="imageInput" class="file-input" accept="image/*" style="display: none;" />
+            <div id="imageSelected" class="file-selected"></div>
             <input type="text" id="imageNameInput" class="file-name" placeholder="Enter image name" />
             <button onclick="uploadFile('image')" class="upload-btn"><i class="fas fa-upload icon"></i>Upload Image</button>
             <div class="progress-bar">
                 <div id="imageProgress" class="progress"></div>
             </div>
             <span id="imageMessage" class="message"></span>
+            
         </div>
 
         <div class="upload-section">
@@ -562,6 +644,18 @@
             <span id="linkMessage" class="message"></span>
         </div>
     </div>
+
+    <div id="overlay" class="overlay" style="display: none;">
+        <div class="overlay-content">
+            <div class="loader"><i class="fas fa-cloud-upload-alt pulse-icon"></i></div>
+            <h3 id="overlayMessage">Uploading...</h3>
+            <div class="progress-bar" style="margin-top: 10px;">
+                <div id="overlayProgress" class="progress"></div>
+            </div>
+            <div class="success-icon"><i class="fas fa-check-circle"></i></div>
+        </div>
+    </div>
+
     <footer>
         <h5 style="display: flex; justify-content: center; font-weight: bold;">
             Made with fun by- <a style="color: #3dffc5; font-weight: underline;" href="https://github.com/sanket3yoprogrammer">@Sanket3yoprogrammer</a>
@@ -574,11 +668,23 @@
             document.getElementById('imageInput').click();
         });
 
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            const fileSelected = document.getElementById('fileSelected');
+            if (file) {
+                fileSelected.textContent = `Selected file: ${file.name}`;
+            } else {
+                fileSelected.textContent = '';
+            }
+        });
+
         document.getElementById('imageInput').addEventListener('change', function(event) {
             const file = event.target.files[0];
+            const imageSelected = document.getElementById('imageSelected');
             if (file) {
-                console.log('Selected file:', file);
-                // You can handle the selected file here
+                imageSelected.textContent = `Selected image: ${file.name}`;
+            } else {
+                imageSelected.textContent = '';
             }
         });
 
@@ -610,24 +716,20 @@
         }
 
         function showOverlay(message) {
-            document.body.insertAdjacentHTML('beforeend', `
-                <div id="overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; color:#fff;">
-                    <div>${message}<br/><div class="loader"></div></div>
-                </div>
-            `);
+            const overlay = document.getElementById('overlay');
+            const overlayMessage = document.getElementById('overlayMessage');
+            overlayMessage.textContent = message;
+            overlay.style.display = 'flex';
         }
 
         function hideOverlay() {
             const overlay = document.getElementById('overlay');
-            if (overlay) {
-                overlay.remove();
-            }
+            overlay.style.display = 'none';
         }
 
         function uploadFile(type) {
             const fileInput = document.getElementById(type + 'Input');
             const fileNameInput = document.getElementById(type + 'NameInput');
-            const progressBar = document.getElementById(type + 'Progress');
             const message = document.getElementById(type + 'Message');
 
             const file = fileInput.files[0];
@@ -640,15 +742,13 @@
 
             showOverlay('Uploading...');
 
-            const fileExtension = getFileExtension(file.name);
             const storageRef = storage.ref().child(type + '/' + fileName);
             const uploadTask = storageRef.put(file);
 
             uploadTask.on('state_changed',
                 (snapshot) => {
                     const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                    progressBar.style.width = progress + '%';
-                    progressBar.textContent = Math.round(progress) + '%';
+                    document.getElementById('overlayProgress').style.width = Math.round(progress) + '%';
                 },
                 (error) => {
                     hideOverlay();
@@ -667,10 +767,13 @@
                         };
 
                         database.ref(type).push(fileData).then(() => {
-                            hideOverlay();
-                            message.textContent = 'Upload successful!';
-                            alert('Upload successful!');
-                            
+                            document.getElementById('overlayMessage').textContent = 'Upload successful!';
+                            document.getElementById('overlayProgress').style.width = '100%';
+                            document.querySelector('.success-icon').style.display = 'block';
+                            setTimeout(() => {
+                                hideOverlay();
+                                document.querySelector('.success-icon').style.display = 'none';
+                            }, 2000);
                             fileInput.value = '';  // Clear file input
                             fileNameInput.value = '';  // Clear file name input
                         });
@@ -682,7 +785,6 @@
         function uploadText() {
             const textInput = document.getElementById('textInput');
             const textNameInput = document.getElementById('textNameInput');
-            const progressBar = document.getElementById('textProgress');
             const message = document.getElementById('textMessage');
 
             const text = textInput.value;
@@ -703,11 +805,11 @@
             };
 
             database.ref('text').push(fileData).then(() => {
-                hideOverlay();
                 message.textContent = 'Upload successful!';
                 alert('Upload successful!');
                 textInput.value = '';  // Clear text input
                 textNameInput.value = '';  // Clear text name input
+                hideOverlay(); // Hide overlay after successful upload
             }).catch((error) => {
                 hideOverlay();
                 message.textContent = 'Failed to save data: ' + error.message;
@@ -718,7 +820,6 @@
         function uploadYouTube() {
             const youtubeInput = document.getElementById('youtubeInput');
             const youtubeNameInput = document.getElementById('youtubeNameInput');
-            const progressBar = document.getElementById('youtubeProgress');
             const message = document.getElementById('youtubeMessage');
 
             const youtubeUrl = youtubeInput.value;
@@ -739,11 +840,11 @@
             };
 
             database.ref('youtube').push(fileData).then(() => {
-                hideOverlay();
                 message.textContent = 'Upload successful!';
                 alert('Upload successful!');
                 youtubeInput.value = '';  // Clear YouTube URL input
                 youtubeNameInput.value = '';  // Clear YouTube name Input
+                hideOverlay(); // Hide overlay after successful upload
             }).catch((error) => {
                 hideOverlay();
                 message.textContent = 'Failed to save data: ' + error.message;
@@ -754,7 +855,6 @@
         function uploadLink() {
             const linkInput = document.getElementById('linkInput');
             const linkNameInput = document.getElementById('linkNameInput');
-            const progressBar = document.getElementById('linkProgress');
             const message = document.getElementById('linkMessage');
 
             const linkUrl = linkInput.value;
@@ -775,11 +875,11 @@
             };
 
             database.ref('link').push(fileData).then(() => {
-                hideOverlay();
                 message.textContent = 'Upload successful!';
                 alert('Upload successful!');
                 linkInput.value = '';  // Clear URL input
                 linkNameInput.value = '';  // Clear link name input
+                hideOverlay(); // Hide overlay after successful upload
             }).catch((error) => {
                 hideOverlay();
                 message.textContent = 'Failed to save data: ' + error.message;
